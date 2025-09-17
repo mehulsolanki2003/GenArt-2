@@ -492,8 +492,11 @@ textarea::-webkit-scrollbar-thumb:hover {
         right: 1.5rem;
     }
 
+    .dark body { background-color: #111; color: #eee; }
+
     #music-btn {
         width: 56px;
         height: 56px;
     }
+
 }
