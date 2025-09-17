@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GenArt - History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">🎨 GenArt</h1>
+    <div class="flex gap-4 items-center">
+      <button id="auth-btn" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Login</button>
+      <button id="open-history-btn" class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-800">📜 History</button>
+    </div>
+  </nav>
+
+  <!-- Page Content -->
+  <main class="p-6">
+    <h2 class="text-2xl font-semibold mb-4">Welcome to GenArt!</h2>
+    <p class="text-gray-700">Generate amazing AI art, and check your history later in the sidebar.</p>
+  </main>
+
+  <!-- History Sidebar -->
+  <div id="history-sidebar" class="hidden fixed top-0 right-0 w-96 h-full bg-white shadow-lg z-50 flex flex-col">
+    <!-- Header -->
+    <div class="p-4 flex justify-between items-center border-b">
+      <h2 class="text-lg font-bold">History</h2>
+      <button id="close-history-btn" class="text-gray-500 hover:text-gray-700 text-xl">✖</button>
+    </div>
+
+    <!-- Controls -->
+    <div class="p-2 flex justify-between items-center border-b">
+      <input id="search-history" type="text" placeholder="Search history..."
+        class="flex-1 border rounded p-1 text-sm" />
+      <select id="filter-history" class="ml-2 border rounded p-1 text-sm">
+        <option value="all">All</option>
+        <option value="favorites">Favorites</option>
+      </select>
+    </div>
+
+    <!-- History List -->
+    <div id="history-list" class="flex-1 overflow-y-auto p-2 space-y-2 text-sm text-gray-700">
+      <p class="text-gray-400 text-center text-sm">Sign in to view history.</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-2 border-t flex justify-between">
+      <button id="export-json" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">
+        ⬇ Download JSON
+      </button>
+    </div>
+  </div>
+  <script type="module" src="history.js"></script>
+
+
+  <!-- <script src="history.js"></script> -->
+</body>
+</html>
