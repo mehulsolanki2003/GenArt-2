@@ -94,13 +94,17 @@
                 <a href="pricing.html" class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">Pricing</a>
                 <div id="generation-counter" class="text-sm font-medium text-gray-500">
                 <button id="auth-btn" class="text-sm font-medium border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all duration-300">Sign In</button>
-                <button id="open-history-btn" class="text-sm border border-gray-300 px-4 py-2 rounded-lg">History</button>
+                <!-- History Button (hidden by default, shown after login) -->
+                <button id="history-link" class="hidden px-4 py-2 border rounded hover:bg-gray-100">
+                  History
+                </button>
+
                 <button onclick="document.documentElement.classList.toggle('dark')">🌙</button>
 
             </div>
             <!-- History Sidebar -->
             <!-- History Sidebar -->
-            <div id="history-sidebar" class="hidden fixed top-0 right-0 w-64 h-[90vh] bg-white shadow-lg p-4 overflow-y-auto rounded-l-xl">
+<!--             <div id="history-sidebar" class="hidden fixed top-0 right-0 w-64 h-[90vh] bg-white shadow-lg p-4 overflow-y-auto rounded-l-xl">
 
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-lg">History</h3>
@@ -113,7 +117,7 @@
                 🗑️ Clear All
             </button>
                 <div id="history-list" class="space-y-2"></div>
-            </div>
+            </div> -->
 
 
                  
@@ -537,3 +541,4 @@
 
 </body>
 </html>
+
