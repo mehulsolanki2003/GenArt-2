@@ -500,3 +500,10 @@ textarea::-webkit-scrollbar-thumb:hover {
     }
 
 }
+
+.dark body { background-color: #111; color: #eee; }
+
+/* If you’re not using Tailwind, you can add this CSS */
+.star-empty { color: #ccc; }
+.star-filled { color: gold; }
+
