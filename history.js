@@ -1,129 +1,116 @@
-// --- Firebase Imports ---
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+// --- History Management ---
 
-const auth = getAuth();
-
-// --- DOM Elements ---
-const historySidebar = document.getElementById("history-sidebar");
-const openHistoryBtn = document.getElementById("open-history-btn");
-const closeHistoryBtn = document.getElementById("close-history-btn");
-const historyList = document.getElementById("history-list");
-const exportJsonBtn = document.getElementById("export-json");
-const filterHistory = document.getElementById("filter-history");
-const searchHistory = document.getElementById("search-history");
-
-let userHistory = [];
-
-// ----------------------
-// 🔥 Save new history item
-// ----------------------
+// Save entry to history (localStorage)
 export function saveToHistory(imageUrl, prompt) {
-  const history = JSON.parse(localStorage.getItem("genart-history")) || [];
-  history.unshift({
-    image: imageUrl,
-    prompt: prompt,
-    favorite: false,
-    date: new Date().toISOString(),
-  });
-  localStorage.setItem("genart-history", JSON.stringify(history));
+  const history = JSON.parse(localStorage.getItem("history")) || [];
+  const newEntry = {
+    id: Date.now(),
+    imageUrl,
+    prompt,
+    isFavorite: false,
+    createdAt: new Date().toISOString()
+  };
+
+  history.unshift(newEntry); // add to beginning
+  localStorage.setItem("history", JSON.stringify(history));
+  renderHistory();
 }
 
-// ----------------------
-// 🖼 Render History UI
-// ----------------------
-function renderHistory() {
-  if (!auth.currentUser) {
-    historyList.innerHTML = `<p class="text-gray-400 text-center text-sm">Sign in to view history.</p>`;
+// Render history in sidebar
+export function renderHistory() {
+  const container = document.getElementById("history-entries");
+  if (!container) return;
+
+  container.innerHTML = "";
+  const history = JSON.parse(localStorage.getItem("history")) || [];
+
+  if (history.length === 0) {
+    container.innerHTML = `<p class="text-gray-500 text-center py-4">No history yet</p>`;
     return;
   }
 
-  userHistory = JSON.parse(localStorage.getItem("genart-history")) || [];
-  let filtered = [...userHistory];
+  history.forEach(entry => {
+    const item = document.createElement("div");
+    item.className =
+      "flex items-center gap-3 p-3 bg-white rounded-lg shadow border border-gray-200 hover:bg-gray-50";
 
-  // filter favorites
-  if (filterHistory.value === "favorites") {
-    filtered = filtered.filter((h) => h.favorite);
-  }
+    // Thumbnail
+    const thumb = document.createElement("img");
+    thumb.src = entry.imageUrl;
+    thumb.alt = entry.prompt;
+    thumb.className = "w-16 h-16 object-cover rounded";
 
-  // search filter
-  const query = searchHistory.value.toLowerCase();
-  if (query) {
-    filtered = filtered.filter((h) => h.prompt.toLowerCase().includes(query));
-  }
-
-  if (filtered.length === 0) {
-    historyList.innerHTML = `<p class="text-gray-400 text-center text-sm">No history found.</p>`;
-    return;
-  }
-
-  historyList.innerHTML = "";
-  filtered.forEach((item, idx) => {
-    const div = document.createElement("div");
-    div.className =
-      "border rounded-lg p-2 flex gap-2 items-start hover:bg-gray-50";
-
-    div.innerHTML = `
-      <img src="${item.image}" alt="History Image" class="w-16 h-16 object-cover rounded">
-      <div class="flex-1">
-        <p class="font-medium">${item.prompt}</p>
-        <p class="text-xs text-gray-500">${new Date(item.date).toLocaleString()}</p>
-      </div>
-      <button class="favorite-btn text-xl ${
-        item.favorite ? "text-yellow-500" : "text-gray-400"
-      }">★</button>
+    // Info
+    const info = document.createElement("div");
+    info.className = "flex-1 overflow-hidden";
+    info.innerHTML = `
+      <p class="text-sm font-medium text-gray-800 truncate">${entry.prompt}</p>
+      <p class="text-xs text-gray-400">${new Date(entry.createdAt).toLocaleString()}</p>
     `;
 
-    // toggle favorite
-    div.querySelector(".favorite-btn").addEventListener("click", () => {
-      userHistory[idx].favorite = !userHistory[idx].favorite;
-      localStorage.setItem("genart-history", JSON.stringify(userHistory));
-      renderHistory();
-    });
+    // Actions
+    const actions = document.createElement("div");
+    actions.className = "flex gap-2";
 
-    historyList.appendChild(div);
+    // ⭐ Favorite
+    const favBtn = document.createElement("button");
+    favBtn.innerHTML = entry.isFavorite ? "⭐" : "☆";
+    favBtn.title = "Favorite";
+    favBtn.className = "text-yellow-500 hover:scale-110 transition";
+    favBtn.onclick = () => toggleFavorite(entry.id);
+
+    // 📋 Copy
+    const copyBtn = document.createElement("button");
+    copyBtn.innerHTML = "📋";
+    copyBtn.title = "Copy Prompt";
+    copyBtn.className = "hover:scale-110 transition";
+    copyBtn.onclick = () => copyToClipboard(entry.prompt);
+
+    // ❌ Delete
+    const delBtn = document.createElement("button");
+    delBtn.innerHTML = "❌";
+    delBtn.title = "Delete";
+    delBtn.className = "hover:scale-110 transition";
+    delBtn.onclick = () => deleteFromHistory(entry.id);
+
+    actions.append(favBtn, copyBtn, delBtn);
+
+    item.append(thumb, info, actions);
+    container.appendChild(item);
   });
 }
 
-// ----------------------
-// 📂 Export JSON
-// ----------------------
-function exportHistory() {
-  if (!auth.currentUser) {
-    alert("Please log in to download history.");
-    return;
-  }
-  const dataStr =
-    "data:text/json;charset=utf-8," +
-    encodeURIComponent(JSON.stringify(userHistory, null, 2));
-  const dlAnchor = document.createElement("a");
-  dlAnchor.setAttribute("href", dataStr);
-  dlAnchor.setAttribute("download", "genart-history.json");
-  dlAnchor.click();
+// Toggle favorite
+function toggleFavorite(id) {
+  const history = JSON.parse(localStorage.getItem("history")) || [];
+  const updated = history.map(entry =>
+    entry.id === id ? { ...entry, isFavorite: !entry.isFavorite } : entry
+  );
+  localStorage.setItem("history", JSON.stringify(updated));
+  renderHistory();
 }
 
-// ----------------------
-// 🎯 Event Listeners
-// ----------------------
-openHistoryBtn?.addEventListener("click", () => {
-  historySidebar.classList.remove("hidden");
+// Delete entry
+function deleteFromHistory(id) {
+  const history = JSON.parse(localStorage.getItem("history")) || [];
+  const updated = history.filter(entry => entry.id !== id);
+  localStorage.setItem("history", JSON.stringify(updated));
   renderHistory();
-});
+}
 
-closeHistoryBtn?.addEventListener("click", () =>
-  historySidebar.classList.add("hidden")
-);
+// Copy to clipboard
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Prompt copied!");
+  });
+}
 
-exportJsonBtn?.addEventListener("click", exportHistory);
-searchHistory?.addEventListener("input", renderHistory);
-filterHistory?.addEventListener("change", renderHistory);
-
-// ----------------------
-// 👤 Auth State Handling
-// ----------------------
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    renderHistory();
-  } else {
-    historyList.innerHTML = `<p class="text-gray-400 text-center text-sm">Sign in to view history.</p>`;
-  }
-});
+// Download history as JSON
+export function downloadHistory() {
+  const history = JSON.parse(localStorage.getItem("history")) || [];
+  const blob = new Blob([JSON.stringify(history, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "history.json";
+  a.click();
+}
