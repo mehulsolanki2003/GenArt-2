@@ -78,7 +78,7 @@ function initializeEventListeners() {
 
     async function updateUIForAuthState(user) {
   if (user) {
-    // ✅ Show History button after login
+    //  Show History button after login
     document.getElementById("history-link")?.classList.remove("hidden");
 
     try {
@@ -110,7 +110,7 @@ function initializeEventListeners() {
         DOMElements.mobileMenuBtn.addEventListener('click', () => DOMElements.mobileMenu.classList.toggle('hidden'));
     
     [DOMElements.authBtn, DOMElements.mobileAuthBtn].forEach(btn => btn?.addEventListener('click', handleAuthAction));
-    // ✅ Fix: Bind Google button to signInWithGoogle
+    // Fix: Bind Google button to signInWithGoogle
     if (DOMElements.googleSignInBtn) {
         DOMElements.googleSignInBtn.addEventListener('click', (e) => { e.preventDefault(); signInWithGoogle();});
     }
@@ -509,3 +509,4 @@ function initializeCursor() {
 //   history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
 //   localStorage.setItem("genart-history", JSON.stringify(history));
 // }
+
