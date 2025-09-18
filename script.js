@@ -76,34 +76,34 @@ document.addEventListener('DOMContentLoaded', () => {
 function initializeEventListeners() {
     onAuthStateChanged(auth, user => updateUIForAuthState(user));
 
-//     async function updateUIForAuthState(user) {
-//   if (user) {
-//     // ✅ Show History button after login
-//     document.getElementById("history-link")?.classList.remove("hidden");
+    async function updateUIForAuthState(user) {
+  if (user) {
+    // ✅ Show History button after login
+    document.getElementById("history-link")?.classList.remove("hidden");
 
-//     try {
-//       const token = await user.getIdToken();
-//       const response = await fetch('/api/credits', {
-//         headers: { 'Authorization': `Bearer ${token}` }
-//       });
-//       if (!response.ok) throw new Error(`Credit fetch failed: ${response.status}`);
-//       const data = await response.json();
-//       currentUserCredits = data.credits;
-//       updateCreditDisplay();
-//     } catch (error) {
-//       console.error("Credit fetch error:", error);
-//       currentUserCredits = 0;
-//       updateCreditDisplay();
-//       showMessage("Could not fetch your credit balance.", "error");
-//     }
-//   } else {
-//     // 🚫 Hide History button when logged out
-//     document.getElementById("history-link")?.classList.add("hidden");
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch('/api/credits', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error(`Credit fetch failed: ${response.status}`);
+      const data = await response.json();
+      currentUserCredits = data.credits;
+      updateCreditDisplay();
+    } catch (error) {
+      console.error("Credit fetch error:", error);
+      currentUserCredits = 0;
+      updateCreditDisplay();
+      showMessage("Could not fetch your credit balance.", "error");
+    }
+  } else {
+    // 🚫 Hide History button when logged out
+    document.getElementById("history-link")?.classList.add("hidden");
 
-//     currentUserCredits = 0;
-//     updateCreditDisplay();
-//   }
-// }
+    currentUserCredits = 0;
+    updateCreditDisplay();
+  }
+}
 
 
     if (DOMElements.mobileMenuBtn) 
@@ -169,50 +169,50 @@ function toggleModal(modal, show) {
     }
 }
 
-async function updateUIForAuthState(user) {
-    if (user) {
+// async function updateUIForAuthState(user) {
+//     if (user) {
 
-       //    History button only visible after login
-        document.getElementById("history-link")?.classList.remove("hidden");
-        document.getElementById("mobile-history-link")?.classList.remove("hidden");
+//        //    History button only visible after login
+//         document.getElementById("history-link")?.classList.remove("hidden");
+//         document.getElementById("mobile-history-link")?.classList.remove("hidden");
 
-        // // 🔥 Show History links when signed in
-        // document.getElementById("history-link")?.classList.remove("hidden");
-        // document.getElementById("mobile-history-link")?.classList.remove("hidden");
+//         // // 🔥 Show History links when signed in
+//         // document.getElementById("history-link")?.classList.remove("hidden");
+//         // document.getElementById("mobile-history-link")?.classList.remove("hidden");
 
-        try {
-            const token = await user.getIdToken();
-            const response = await fetch('/api/credits', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) {
-                const bodyText = await response.text();
-                throw new Error(`Credit fetch failed with status: ${response.status} and body: ${bodyText}`);
-            }
-            const data = await response.json();
-            currentUserCredits = data.credits;
-            updateCreditDisplay();
-        } catch (error) {
-            console.error("Credit fetch error:", error);
-            currentUserCredits = 0;
-            updateCreditDisplay();
-            showMessage("Could not fetch your credit balance.", "error");
-        }
-    } else {
-        currentUserCredits = 0;
+//         try {
+//             const token = await user.getIdToken();
+//             const response = await fetch('/api/credits', {
+//                 headers: { 'Authorization': `Bearer ${token}` }
+//             });
+//             if (!response.ok) {
+//                 const bodyText = await response.text();
+//                 throw new Error(`Credit fetch failed with status: ${response.status} and body: ${bodyText}`);
+//             }
+//             const data = await response.json();
+//             currentUserCredits = data.credits;
+//             updateCreditDisplay();
+//         } catch (error) {
+//             console.error("Credit fetch error:", error);
+//             currentUserCredits = 0;
+//             updateCreditDisplay();
+//             showMessage("Could not fetch your credit balance.", "error");
+//         }
+//     } else {
+//         currentUserCredits = 0;
 
-        // 
-        document.getElementById("history-link")?.classList.add("hidden");
-        document.getElementById("mobile-history-link")?.classList.add("hidden");
+//         // 
+//         document.getElementById("history-link")?.classList.add("hidden");
+//         document.getElementById("mobile-history-link")?.classList.add("hidden");
        
 
-        // // 🚫 Hide History links when signed out
-        // document.getElementById("history-link")?.classList.add("hidden");
-        // document.getElementById("mobile-history-link")?.classList.add("hidden");
-        // updateCreditDisplay();
+//         // // 🚫 Hide History links when signed out
+//         // document.getElementById("history-link")?.classList.add("hidden");
+//         // document.getElementById("mobile-history-link")?.classList.add("hidden");
+//         // updateCreditDisplay();
 
-    }
-}
+//     }
+// }
 
 function updateCreditDisplay() {
     const text = auth.currentUser ? `Credits: ${currentUserCredits}` : 'Sign in for credits';
