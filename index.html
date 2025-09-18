@@ -34,6 +34,7 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
+    <!-- <a href="history.html" id="history-link" class="hidden">History</a> -->
 
     <!-- SEO: Expanded JSON-LD Structured Data (Schema). Helps Google understand your site's content for rich results. -->
     <script type="application/ld+json">
@@ -67,6 +68,7 @@
     }
     </script>
 </head>
+
 <body>
     <!-- Custom Cursor -->
     <div class="cursor-dot"></div>
@@ -78,11 +80,19 @@
         <header class="relative flex justify-between items-center py-5 px-2 fade-in-slide-up z-20">
             <!-- SEO: Alt text is descriptive and includes keywords. -->
             <a href="index.html">
-                 <img src="https://iili.io/FsAoG2I.md.png" alt="GenArt Logo - Free and Fastest AI Image Generator" class="h-6 w-auto">
+            <img src="https://iili.io/FsAoG2I.md.png" alt="GenArt Logo - Free and Fastest AI Image Generator" class="h-6 w-auto">
             </a>
-            <div id="header-auth-section" class="hidden md:flex items-center space-x-6">
-                 <a href="pricing.html" class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">Pricing</a>
-                <div id="generation-counter" class="text-sm font-medium text-gray-500"></div>
+            <!-- <a href="history.html" id="history-link" class="hidden">History</a> -->
+
+            
+            
+                <!-- <a href="history.html" id="history-link" class="hidden">History</a> -->
+
+            <div id="main-content"></div>
+
+            <div class="flex items-center space-x-2">
+                <a href="pricing.html" class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">Pricing</a>
+                <div id="generation-counter" class="text-sm font-medium text-gray-500">
                 <button id="auth-btn" class="text-sm font-medium border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all duration-300">Sign In</button>
                 <!-- History Button (hidden by default, shown after login) -->
                 <button id="history-link" class="hidden px-4 py-2 border rounded hover:bg-gray-100">
@@ -91,7 +101,44 @@
                 <button onclick="document.documentElement.classList.toggle('dark')">🌙</button>
 
             </div>
-            </div>
+            
+            <!-- History Sidebar -->
+            <!-- <div id="history-sidebar" class="hidden fixed top-0 right-0 w-84 h-100 max-w-full bg-white shadow-lg z-50 p-4 overflow-y-auto transform translate-x-full transition-transform duration-300"> -->
+
+                <!-- Header -->
+                <!-- <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">History</h2>
+                    <button id="close-history-btn" class="text-gray-500 hover:text-black text-xl">✖</button>
+                </div> -->
+
+                <!-- Search -->
+                <!-- <input id="history-search" type="text" class="w-full p-2 border rounded mb-4 text-sm" placeholder="🔍 Search history..."> -->
+
+                <!-- Download History -->
+                <!-- <button id="download-history-btn" class="w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm mb-4">
+                    ⬇ Download History
+                </button> -->
+
+                <!-- Tabs -->
+                <!-- <div class="flex gap-2 mb-4">
+                    <button id="tab-all" class="flex-1 bg-blue-500 text-white px-3 py-2 rounded text-sm">All</button>
+                    <button id="tab-favorites" class="flex-1 bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm">⭐ Favorites</button>
+                </div> -->
+
+
+                <!-- Clear -->
+                <!-- <button id="clear-history-btn" class="w-full bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm mb-4">🗑 Clear All</button> -->
+
+                <!-- History List -->
+                <!-- <div id="history-list" class="space-y-2"></div>
+            </div>  -->
+    
+
+
+       
+
+                 
+
             <div class="md:hidden">
                 <button id="mobile-menu-btn" class="p-2 rounded-md text-gray-500 hover:text-gray-800 hover:bg-gray-100">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -239,6 +286,14 @@
                         <img src="https://iili.io/Fii52mF.md.png" alt="Photorealistic animal portrait from the fastest AI image generator" class="gallery-image">
                         <img src="https://iili.io/Fii7T3Q.md.png" alt="Cyberpunk character design using GenArt AI photo generator" class="gallery-image">
                     </div>
+                    <div class="shadow rounded-lg overflow-hidden bg-white">
+                        <img src="your-image.png" class="w-full object-cover" />
+                        <div class="flex justify-between items-center p-2">
+                            <button class="text-sm text-blue-600 hover:underline">⬇ Download</button>
+                            <button class="text-sm text-gray-500 hover:underline">📋 Copy Prompt</button>
+                        </div>
+                    </div>
+
                 </div>
             </section>
             
@@ -307,6 +362,7 @@
                 <div class="wave"></div>
             </div>
         </button>
+
     </div>
 
     <!-- Authentication Modal -->
@@ -329,8 +385,176 @@
         </div>
     </div>
 
+   
+
+     <!-- ✅ History Sidebar -->
+    <!-- <aside id="history-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50 overflow-y-auto">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h2 class="text-lg font-semibold text-gray-800">History</h2>
+            <button id="close-history-btn" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+            <div id="history-list" class="p-4 space-y-3">
+            <p class="text-gray-500">No history yet...</p>
+        </div>
+    </aside> -->
+
+  <!-- ✅ Sidebar Toggle Script -->
+    <!-- <script defer>
+        document.addEventListener("DOMContentLoaded", () => {
+        const openHistoryBtn = document.getElementById("open-history-btn");
+        const closeHistoryBtn = document.getElementById("close-history-btn");
+        const historySidebar = document.getElementById("history-sidebar");
+
+        // Open sidebar
+        openHistoryBtn.addEventListener("click", () => {
+            historySidebar.classList.remove("translate-x-full");
+        });
+
+        // Close sidebar
+        closeHistoryBtn.addEventListener("click", () => {
+            historySidebar.classList.add("translate-x-full");
+        });
+        });
+    </script>
+
+
+    <script>
+        document.getElementById("open-history-btn").addEventListener("click", () => {
+        document.getElementById("history-sidebar").classList.toggle("hidden");
+        });
+    </script>
+
+    <script>
+  // Load favorites from localStorage
+        let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+        // Example history prompts (replace with your actual generation history)
+        let historyPrompts = JSON.parse(localStorage.getItem("historyPrompts")) || [
+            "A cat astronaut", 
+            "Cyberpunk Tokyo", 
+            "Dragon in the sky"
+        ];
+
+        // Render history items with stars
+        function renderHistory(prompts) {
+            const historyList = document.getElementById("history-list");
+            historyList.innerHTML = "";
+
+            if (prompts.length === 0) {
+                historyList.innerHTML = `<p class="text-gray-400 text-sm">No history yet.</p>`;
+                return;
+            }
+
+            prompts.forEach(prompt => {
+                const item = document.createElement("div");
+                item.className = "flex justify-between items-center p-2 border rounded bg-gray-50 hover:bg-gray-100 transition";
+
+                // Prompt text
+                const text = document.createElement("span");
+                text.className = "text-sm";
+                text.textContent = prompt;
+
+                // Favorite button
+                const favBtn = document.createElement("button");
+                favBtn.textContent = favorites.includes(prompt) ? "⭐" : "☆";
+                favBtn.className = "ml-2 text-yellow-500";
+                favBtn.addEventListener("click", () => toggleFavorite(prompt, favBtn));
+
+                item.appendChild(text);
+                item.appendChild(favBtn);
+                historyList.appendChild(item);
+                });
+            }
+
+            // Toggle favorite
+            function toggleFavorite(prompt, btn) {
+                if (favorites.includes(prompt)) {
+                favorites = favorites.filter(p => p !== prompt);
+                btn.textContent = "☆";
+                } else {
+                favorites.push(prompt);
+                btn.textContent = "⭐";
+                }
+                localStorage.setItem("favorites", JSON.stringify(favorites));
+            }
+
+        // 🔍 Search feature
+        document.getElementById("history-search").addEventListener("input", (e) => {
+            const searchText = e.target.value.toLowerCase();
+            const filteredPrompts = historyPrompts.filter(prompt => 
+            prompt.toLowerCase().includes(searchText)
+            );
+            renderHistory(filteredPrompts);
+        });
+
+        // 🗑️ Clear all history
+        document.getElementById("clear-history-btn").addEventListener("click", () => {
+            if (confirm("Are you sure you want to clear all history?")) {
+                historyPrompts = [];
+                localStorage.removeItem("historyPrompts");
+                renderHistory(historyPrompts);
+            }
+        });
+
+         // 📋 Copy button
+        const copyBtn = document.createElement("button");
+        copyBtn.textContent = "📋";
+        copyBtn.className = "text-gray-500 hover:text-black";
+        copyBtn.addEventListener("click", () => copyToClipboard(prompt, copyBtn));
+
+        btnGroup.appendChild(favBtn);
+        btnGroup.appendChild(copyBtn);
+
+        item.appendChild(text);
+        item.appendChild(btnGroup);
+        historyList.appendChild(item);
+
+        // 📋 Copy prompt to clipboard
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                    // Temporary feedback
+                    btn.textContent = "✅";
+                    setTimeout(() => { btn.textContent = "📋"; }, 1000);
+                }).catch(err => {
+                    console.error("Failed to copy text: ", err);
+            });
+        }
+    
+
+        // Save history whenever it changes (example function you can call after generating a new image)
+        function addToHistory(prompt) {
+            historyPrompts.push(prompt);
+            localStorage.setItem("historyPrompts", JSON.stringify(historyPrompts));
+            renderHistory(historyPrompts);
+        }
+
+        // Initial render
+        renderHistory(historyPrompts);
+        </script>
+
+
+    <script>
+  // Open History
+        document.getElementById("open-history-btn").addEventListener("click", () => {
+            document.getElementById("history-sidebar").classList.remove("hidden");
+        });
+
+        // Close History
+        document.getElementById("close-history-btn").addEventListener("click", () => {
+            document.getElementById("history-sidebar").classList.add("hidden");
+        });
+    </script> -->
+
+
+
+
+
+
     <script type="module" src="script.js"></script>
+    <script src="script.js"></script>
     <script src="history.js"></script>
+
+
+
 </body>
 </html>
-
