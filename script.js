@@ -106,16 +106,18 @@ function initializeEventListeners() {
 // }
 
 
-    if (DOMElements.mobileMenuBtn) DOMElements.mobileMenuBtn.addEventListener('click', () => DOMElements.mobileMenu.classList.toggle('hidden'));
+    if (DOMElements.mobileMenuBtn) 
+        DOMElements.mobileMenuBtn.addEventListener('click', () => DOMElements.mobileMenu.classList.toggle('hidden'));
     
     [DOMElements.authBtn, DOMElements.mobileAuthBtn].forEach(btn => btn?.addEventListener('click', handleAuthAction));
-    DOMElements.googleSignInBtn?.addEventListener('click', signInWithGoogle);
+    // ✅ Fix: Bind Google button to signInWithGoogle
+    if (DOMElements.googleSignInBtn) {
+        DOMElements.googleSignInBtn.addEventListener('click', (e) => { e.preventDefault(); signInWithGoogle();});
+    }
+    // DOMElements.googleSignInBtn?.addEventListener('click', signInWithGoogle);
     DOMElements.closeModalBtn?.addEventListener('click', () => toggleModal(DOMElements.authModal, false));
     
-    DOMElements.closeCreditsModalBtn?.addEventListener('click', () => {
-        toggleModal(DOMElements.outOfCreditsModal, false);
-        resetToGeneratorView();
-    });
+    DOMElements.closeCreditsModalBtn?.addEventListener('click', () => { toggleModal(DOMElements.outOfCreditsModal, false); resetToGeneratorView(); });
 
     DOMElements.musicBtn?.addEventListener('click', toggleMusic);
     
@@ -231,6 +233,7 @@ function resetToGeneratorView() {
 
 // --- Core Application Logic ---
 
+// --- FIXED Google Sign-In ---
 function handleAuthAction() {
     if (auth.currentUser) {
         signOut(auth).catch(error => console.error("Sign out error:", error));
@@ -241,7 +244,10 @@ function handleAuthAction() {
 
 function signInWithGoogle() {
     signInWithPopup(auth, provider)
-        .then(() => toggleModal(DOMElements.authModal, false))
+        .then(() => {
+            toggleModal(DOMElements.authModal, false);
+            console.log("✅ Signed in with Google");
+        })
         .catch(error => {
             console.error("Authentication Error:", error);
             showMessage('Failed to sign in. Please try again.', 'error');
