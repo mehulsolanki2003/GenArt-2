@@ -16,6 +16,20 @@ export function saveToHistory(imageUrl, prompt) {
   renderHistory();
 }
 
+export function toggleHistoryAccess(user) {
+  const historyLink = document.getElementById("history-link");
+  const mobileHistoryLink = document.getElementById("mobile-history-link");
+
+  if (user) {
+    historyLink?.classList.remove("hidden");
+    mobileHistoryLink?.classList.remove("hidden");
+  } else {
+    historyLink?.classList.add("hidden");
+    mobileHistoryLink?.classList.add("hidden");
+  }
+}
+
+
 // Render history in sidebar
 export function renderHistory() {
   const container = document.getElementById("history-entries");
@@ -114,3 +128,4 @@ export function downloadHistory() {
   a.download = "history.json";
   a.click();
 }
+
