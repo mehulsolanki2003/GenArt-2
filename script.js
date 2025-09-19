@@ -77,21 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializeEventListeners() {
    onAuthStateChanged(auth, user => {
-    updateUIForAuthState(user);
-    toggleHistoryAccess(user);   // now user is defined ✅
-    if (user) renderHistory();   // 
-
-      // ✅ Show/Hide signout button
-      const signoutBtn = document.getElementById("signout-button");
-      if (signoutBtn) {
-        if (user) {
-          signoutBtn.classList.remove("hidden");
-          signoutBtn.onclick = () => signOut(auth);
-        } else {
-          signoutBtn.classList.add("hidden");
-        }
-      }
-    });
+    updateUIForAuthState(user);  // ✅ handles everything now
+    if (user) renderHistory();   // ✅ load history after login
+  });
 
 
 //     async function updateUIForAuthState(user) {
@@ -194,11 +182,27 @@ function toggleModal(modal, show) {
 
 
 async function updateUIForAuthState(user) {
-    if (user) {
 
-       //    History button only visible after login
-        document.getElementById("history-link")?.classList.remove("hidden");
-        document.getElementById("mobile-history-link")?.classList.remove("hidden");
+    const historyLink = document.getElementById("history-link");
+    const mobileHistoryLink = document.getElementById("mobile-history-link");
+    const signoutBtn = document.getElementById("signout-button");
+    if (user) {
+        
+
+           // ✅ Show history links
+        historyLink?.classList.remove("hidden");
+        mobileHistoryLink?.classList.remove("hidden");
+
+        
+        // ✅ Show signout button
+        if (signoutBtn) {
+          signoutBtn.classList.remove("hidden");
+          signoutBtn.onclick = () => signOut(auth);
+        }
+
+       // //    History button only visible after login
+       //  document.getElementById("history-link")?.classList.remove("hidden");
+       //  document.getElementById("mobile-history-link")?.classList.remove("hidden");
 
         
         try {
@@ -220,11 +224,20 @@ async function updateUIForAuthState(user) {
             showMessage("Could not fetch your credit balance.", "error");
         }
     } else {
-        currentUserCredits = 0;
 
-        // 
-        document.getElementById("history-link")?.classList.add("hidden");
-        document.getElementById("mobile-history-link")?.classList.add("hidden");
+            // 🚫 Hide history links
+        historyLink?.classList.add("hidden");
+        mobileHistoryLink?.classList.add("hidden");
+    
+        // 🚫 Hide signout button
+        if (signoutBtn) {
+          signoutBtn.classList.add("hidden");
+          signoutBtn.onclick = null;
+        }
+        currentUserCredits = 0;
+        updateCreditDisplay();
+
+       
        
 
     }
@@ -529,6 +542,7 @@ function initializeCursor() {
 //   history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
 //   localStorage.setItem("genart-history", JSON.stringify(history));
 // }
+
 
 
 
