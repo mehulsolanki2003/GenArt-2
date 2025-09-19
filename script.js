@@ -4,6 +4,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChang
 // Import history helpers (only once!)
 import { saveToHistory, renderHistory, toggleHistoryAccess } from "./history.js";
 
+
 const firebaseConfig = {
     apiKey: "AIzaSyCcSkzSdz_GtjYQBV5sTUuPxu1BwTZAq7Y",
     authDomain: "genart-a693a.firebaseapp.com",
@@ -78,7 +79,18 @@ function initializeEventListeners() {
    onAuthStateChanged(auth, user => {
     updateUIForAuthState(user);
     toggleHistoryAccess(user);   // now user is defined ✅
-    if (user) renderHistory();   // ✅
+    if (user) renderHistory();   // 
+
+      // ✅ Show/Hide signout button
+      const signoutBtn = document.getElementById("signout-button");
+      if (signoutBtn) {
+        if (user) {
+          signoutBtn.classList.remove("hidden");
+          signoutBtn.onclick = () => signOut(auth);
+        } else {
+          signoutBtn.classList.add("hidden");
+        }
+      }
     });
 
 
@@ -517,6 +529,7 @@ function initializeCursor() {
 //   history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
 //   localStorage.setItem("genart-history", JSON.stringify(history));
 // }
+
 
 
 
