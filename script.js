@@ -1,8 +1,7 @@
 // --- Firebase and Auth Initialization ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { saveToHistory } from "./history.js";
-// ✅ Import history helpers
+// Import history helpers (only once!)
 import { saveToHistory, renderHistory, toggleHistoryAccess } from "./history.js";
 
 
@@ -79,10 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeEventListeners() {
-    onAuthStateChanged(auth, user => updateUIForAuthState(user));
-    toggleHistoryAccess(user);
-       // ✅ Show/hide history based on login
-    if (user) renderHistory(); 
+   onAuthStateChanged(auth, user => {
+    updateUIForAuthState(user);
+    toggleHistoryAccess(user);   // now user is defined ✅
+    if (user) renderHistory();   // ✅
+    });
 
 
 //     async function updateUIForAuthState(user) {
@@ -525,3 +525,4 @@ function initializeCursor() {
 //   history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
 //   localStorage.setItem("genart-history", JSON.stringify(history));
 // }
+
