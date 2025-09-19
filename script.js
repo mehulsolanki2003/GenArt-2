@@ -183,6 +183,7 @@ function toggleModal(modal, show) {
 
 
 
+
 async function updateUIForAuthState(user) {
     if (user) {
 
@@ -519,5 +520,6 @@ function initializeCursor() {
 //   history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
 //   localStorage.setItem("genart-history", JSON.stringify(history));
 // }
+
 
 
