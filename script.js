@@ -1,6 +1,12 @@
 // --- Firebase and Auth Initialization ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { saveToHistory } from "./history.js";
+// ✅ Import history helpers
+import { saveToHistory, renderHistory, toggleHistoryAccess } from "./history.js";
+
+
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyCcSkzSdz_GtjYQBV5sTUuPxu1BwTZAq7Y",
@@ -35,6 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     DOMElements.mobileAuthBtn = document.getElementById('mobile-auth-btn');
     DOMElements.authModal = document.getElementById('auth-modal');
     DOMElements.googleSignInBtn = document.getElementById('google-signin-btn');
+    DOMElements.historyLink = document.getElementById("history-link");
+    DOMElements.mobileHistoryLink = document.getElementById("mobile-history-link");
     DOMElements.closeModalBtn = document.getElementById('close-modal-btn');
     DOMElements.outOfCreditsModal = document.getElementById('out-of-credits-modal');
     DOMElements.closeCreditsModalBtn = document.getElementById('close-credits-modal-btn');
@@ -64,23 +72,64 @@ document.addEventListener('DOMContentLoaded', () => {
     DOMElements.regeneratePromptInput = document.getElementById('regenerate-prompt-input');
     DOMElements.regenerateBtn = document.getElementById('regenerate-btn');
     DOMElements.messageBox = document.getElementById('message-box');
+
+    
     
     initializeEventListeners();
 });
 
 function initializeEventListeners() {
     onAuthStateChanged(auth, user => updateUIForAuthState(user));
+    toggleHistoryAccess(user);
+       // ✅ Show/hide history based on login
+    if (user) renderHistory(); 
 
-    if (DOMElements.mobileMenuBtn) DOMElements.mobileMenuBtn.addEventListener('click', () => DOMElements.mobileMenu.classList.toggle('hidden'));
+
+//     async function updateUIForAuthState(user) {
+//   if (user) {
+//     // ✅ Show History button after login
+//     document.getElementById("history-link")?.classList.remove("hidden");
+
+//     try {
+//       const token = await user.getIdToken();
+//       const response = await fetch('/api/credits', {
+//         headers: { 'Authorization': `Bearer ${token}` }
+//       });
+//       if (!response.ok) throw new Error(`Credit fetch failed: ${response.status}`);
+//       const data = await response.json();
+//       currentUserCredits = data.credits;
+//       updateCreditDisplay();
+//     } catch (error) {
+//       console.error("Credit fetch error:", error);
+//       currentUserCredits = 0;
+//       updateCreditDisplay();
+//       showMessage("Could not fetch your credit balance.", "error");
+//     }
+//   } else {
+//     // 🚫 Hide History button when logged out
+//     document.getElementById("history-link")?.classList.add("hidden");
+
+//     currentUserCredits = 0;
+//     updateCreditDisplay();
+//   }
+// }
+
+
+    if (DOMElements.mobileMenuBtn) 
+        DOMElements.mobileMenuBtn.addEventListener('click', () => DOMElements.mobileMenu.classList.toggle('hidden'));
     
     [DOMElements.authBtn, DOMElements.mobileAuthBtn].forEach(btn => btn?.addEventListener('click', handleAuthAction));
-    DOMElements.googleSignInBtn?.addEventListener('click', signInWithGoogle);
+     // ✅ Make sure Google button inside modal works
+  if (DOMElements.googleSignInBtn) {
+    DOMElements.googleSignInBtn.addEventListener("click", e => {
+      e.preventDefault();
+      signInWithGoogle();
+    });
+  }
+    // DOMElements.googleSignInBtn?.addEventListener('click', signInWithGoogle);
     DOMElements.closeModalBtn?.addEventListener('click', () => toggleModal(DOMElements.authModal, false));
     
-    DOMElements.closeCreditsModalBtn?.addEventListener('click', () => {
-        toggleModal(DOMElements.outOfCreditsModal, false);
-        resetToGeneratorView();
-    });
+    DOMElements.closeCreditsModalBtn?.addEventListener('click', () => { toggleModal(DOMElements.outOfCreditsModal, false); resetToGeneratorView(); });
 
     DOMElements.musicBtn?.addEventListener('click', toggleMusic);
     
@@ -132,10 +181,22 @@ function toggleModal(modal, show) {
     }
 }
 
+// ------------------- HISTORY -------------------
+
+function saveToHistory(imageUrl, prompt) {
+    let history = JSON.parse(localStorage.getItem("genart-history")) || [];
+    history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
+    localStorage.setItem("genart-history", JSON.stringify(history));
+}
+
 async function updateUIForAuthState(user) {
     if (user) {
-        DOMElements.authBtn.textContent = 'Sign Out';
-        DOMElements.mobileAuthBtn.textContent = 'Sign Out';
+
+       //    History button only visible after login
+        document.getElementById("history-link")?.classList.remove("hidden");
+        document.getElementById("mobile-history-link")?.classList.remove("hidden");
+
+        
         try {
             const token = await user.getIdToken();
             const response = await fetch('/api/credits', {
@@ -156,9 +217,12 @@ async function updateUIForAuthState(user) {
         }
     } else {
         currentUserCredits = 0;
-        DOMElements.authBtn.textContent = 'Sign In';
-        DOMElements.mobileAuthBtn.textContent = 'Sign In';
-        updateCreditDisplay();
+
+        // 
+        document.getElementById("history-link")?.classList.add("hidden");
+        document.getElementById("mobile-history-link")?.classList.add("hidden");
+       
+
     }
 }
 
@@ -181,21 +245,27 @@ function resetToGeneratorView() {
 
 // --- Core Application Logic ---
 
+// ------------------- AUTH -------------------
 function handleAuthAction() {
-    if (auth.currentUser) {
-        signOut(auth).catch(error => console.error("Sign out error:", error));
-    } else {
-        toggleModal(DOMElements.authModal, true);
-    }
+  if (auth.currentUser) {
+    // Sign out
+    signOut(auth).catch(error => console.error("Sign out error:", error));
+  } else {
+    // Show modal
+    toggleModal(DOMElements.authModal, true);
+  }
 }
 
 function signInWithGoogle() {
-    signInWithPopup(auth, provider)
-        .then(() => toggleModal(DOMElements.authModal, false))
-        .catch(error => {
-            console.error("Authentication Error:", error);
-            showMessage('Failed to sign in. Please try again.', 'error');
-        });
+  signInWithPopup(auth, provider)
+    .then(() => {
+      toggleModal(DOMElements.authModal, false);
+      console.log("✅ Signed in with Google");
+    })
+    .catch(error => {
+      console.error("Authentication Error:", error);
+      showMessage("Failed to sign in. Please try again.", "error");
+    });
 }
 
 function handleImageGenerationRequest(isRegenerate) {
@@ -328,16 +398,22 @@ function displayImage(imageUrl, prompt) {
 
     imgContainer.append(img, downloadButton);
     DOMElements.imageGrid.appendChild(imgContainer);
+
+    // Save to history after showing the image
+    saveToHistory(imageUrl, prompt);
+    
 }
 
 // --- Utility Functions ---
 
 function showMessage(text, type = 'info') {
+    const messageBox = document.getElementById("message-box");
+    if (!messageBox) return;
     const messageEl = document.createElement('div');
-    messageEl.className = `p-4 rounded-lg ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'} fade-in-slide-up`;
+    messageEl.className = `p-4 rounded-lg ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`;
     messageEl.textContent = text;
-    DOMElements.messageBox.innerHTML = '';
-    DOMElements.messageBox.appendChild(messageEl);
+    messageBox.innerHTML = '';
+    messageBox.appendChild(messageEl);
 }
 
 function addNavigationButtons() {
@@ -441,3 +517,11 @@ function initializeCursor() {
         el.addEventListener('mouseout', () => DOMElements.cursorOutline.classList.remove('cursor-hover'));
     });
 }
+
+// document.getElementById("history-link").classList.remove("hidden");
+// document.getElementById("mobile-history-link").classList.remove("hidden");
+// function saveToHistory(imageUrl, prompt) {
+//   let history = JSON.parse(localStorage.getItem("genart-history")) || [];
+//   history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
+//   localStorage.setItem("genart-history", JSON.stringify(history));
+// }
