@@ -181,13 +181,7 @@ function toggleModal(modal, show) {
     }
 }
 
-// ------------------- HISTORY -------------------
 
-function saveToHistory(imageUrl, prompt) {
-    let history = JSON.parse(localStorage.getItem("genart-history")) || [];
-    history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
-    localStorage.setItem("genart-history", JSON.stringify(history));
-}
 
 async function updateUIForAuthState(user) {
     if (user) {
@@ -525,4 +519,5 @@ function initializeCursor() {
 //   history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
 //   localStorage.setItem("genart-history", JSON.stringify(history));
 // }
+
 
