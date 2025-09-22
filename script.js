@@ -82,34 +82,7 @@ function initializeEventListeners() {
   });
 
 
-//     async function updateUIForAuthState(user) {
-//   if (user) {
-//     // ✅ Show History button after login
-//     document.getElementById("history-link")?.classList.remove("hidden");
 
-//     try {
-//       const token = await user.getIdToken();
-//       const response = await fetch('/api/credits', {
-//         headers: { 'Authorization': `Bearer ${token}` }
-//       });
-//       if (!response.ok) throw new Error(`Credit fetch failed: ${response.status}`);
-//       const data = await response.json();
-//       currentUserCredits = data.credits;
-//       updateCreditDisplay();
-//     } catch (error) {
-//       console.error("Credit fetch error:", error);
-//       currentUserCredits = 0;
-//       updateCreditDisplay();
-//       showMessage("Could not fetch your credit balance.", "error");
-//     }
-//   } else {
-//     // 🚫 Hide History button when logged out
-//     document.getElementById("history-link")?.classList.add("hidden");
-
-//     currentUserCredits = 0;
-//     updateCreditDisplay();
-//   }
-// }
 
 
     if (DOMElements.mobileMenuBtn) 
@@ -542,6 +515,7 @@ function initializeCursor() {
 //   history.unshift({ image: imageUrl, prompt: prompt, date: new Date().toISOString() });
 //   localStorage.setItem("genart-history", JSON.stringify(history));
 // }
+
 
 
 
