@@ -1,5 +1,6 @@
 /* A more refined, classic, and aesthetic UI style */
 body {
+    overflow-x: hidden; /* Prevent horizontal scrolling */
     font-family: 'Inter', sans-serif;
     background-color: #f7f7f7;
     min-height: 100vh;
@@ -506,4 +507,5 @@ textarea::-webkit-scrollbar-thumb:hover {
 /* If you’re not using Tailwind, you can add this CSS */
 .star-empty { color: #ccc; }
 .star-filled { color: gold; }
+
 
