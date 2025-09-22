@@ -79,26 +79,29 @@ function initializeEventListeners() {
     // toggleHistoryAccess(user);   // now user is defined ✅
     // if (user) renderHistory();  
 
-        // --- HISTORY SIDEBAR OPEN/CLOSE ---
-        const openHistoryBtn = document.getElementById("open-history-btn");
-        const closeHistoryBtn = document.getElementById("close-history-btn");
-        const historySidebar = document.getElementById("history-sidebar");
+    });
 
-        if (openHistoryBtn && historySidebar) {
+      // --- HISTORY SIDEBAR OPEN/CLOSE ---
+    const openHistoryBtn = document.getElementById("open-history-btn");
+    const closeHistoryBtn = document.getElementById("close-history-btn");
+    const historySidebar = document.getElementById("history-sidebar");
+
+    if (openHistoryBtn && historySidebar) {
         openHistoryBtn.addEventListener("click", () => {
             historySidebar.classList.remove("translate-x-full");
             historySidebar.setAttribute("aria-hidden", "false");
-            renderHistory(); // refresh history each time it's opened
+            renderHistory();
+    
+             // refresh history each time it's opened
         });
-        }
+    }
 
-        if (closeHistoryBtn && historySidebar) {
+    if (closeHistoryBtn && historySidebar) {
         closeHistoryBtn.addEventListener("click", () => {
             historySidebar.classList.add("translate-x-full");
             historySidebar.setAttribute("aria-hidden", "true");
         });
-        }
-    });
+    }
 
 
 
@@ -533,4 +536,5 @@ function renderHistory() {
     historyContainer.appendChild(el);
   });
 }
+
 
