@@ -2,8 +2,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-
-
 const firebaseConfig = {
     apiKey: "AIzaSyCcSkzSdz_GtjYQBV5sTUuPxu1BwTZAq7Y",
     authDomain: "genart-a693a.firebaseapp.com",
@@ -66,60 +64,23 @@ document.addEventListener('DOMContentLoaded', () => {
     DOMElements.regeneratePromptInput = document.getElementById('regenerate-prompt-input');
     DOMElements.regenerateBtn = document.getElementById('regenerate-btn');
     DOMElements.messageBox = document.getElementById('message-box');
-
-    
     
     initializeEventListeners();
 });
 
 function initializeEventListeners() {
-    onAuthStateChanged(auth, user => {
-        
-        updateUIForAuthState(user);
-    // toggleHistoryAccess(user);   // now user is defined ✅
-    // if (user) renderHistory();  
+    onAuthStateChanged(auth, user => updateUIForAuthState(user));
 
-    });
-
-      // --- HISTORY SIDEBAR OPEN/CLOSE ---
-    const openHistoryBtn = document.getElementById("open-history-btn");
-    const closeHistoryBtn = document.getElementById("close-history-btn");
-    const historySidebar = document.getElementById("history-sidebar");
-
-    if (openHistoryBtn && historySidebar) {
-        openHistoryBtn.addEventListener("click", () => {
-            historySidebar.classList.remove("translate-x-full");
-            historySidebar.setAttribute("aria-hidden", "false");
-            renderHistory();
-    
-             // refresh history each time it's opened
-        });
-    }
-
-    if (closeHistoryBtn && historySidebar) {
-        closeHistoryBtn.addEventListener("click", () => {
-            historySidebar.classList.add("translate-x-full");
-            historySidebar.setAttribute("aria-hidden", "true");
-        });
-    }
-
-
-
-    if (DOMElements.mobileMenuBtn) 
-        DOMElements.mobileMenuBtn.addEventListener('click', () => DOMElements.mobileMenu.classList.toggle('hidden'));
+    if (DOMElements.mobileMenuBtn) DOMElements.mobileMenuBtn.addEventListener('click', () => DOMElements.mobileMenu.classList.toggle('hidden'));
     
     [DOMElements.authBtn, DOMElements.mobileAuthBtn].forEach(btn => btn?.addEventListener('click', handleAuthAction));
-     // ✅ Make sure Google button inside modal works
-  if (DOMElements.googleSignInBtn) {
-    DOMElements.googleSignInBtn.addEventListener("click", e => {
-      e.preventDefault();
-      signInWithGoogle();
-    });
-  }
-    // DOMElements.googleSignInBtn?.addEventListener('click', signInWithGoogle);
+    DOMElements.googleSignInBtn?.addEventListener('click', signInWithGoogle);
     DOMElements.closeModalBtn?.addEventListener('click', () => toggleModal(DOMElements.authModal, false));
     
-    DOMElements.closeCreditsModalBtn?.addEventListener('click', () => { toggleModal(DOMElements.outOfCreditsModal, false); resetToGeneratorView(); });
+    DOMElements.closeCreditsModalBtn?.addEventListener('click', () => {
+        toggleModal(DOMElements.outOfCreditsModal, false);
+        resetToGeneratorView();
+    });
 
     DOMElements.musicBtn?.addEventListener('click', toggleMusic);
     
@@ -171,14 +132,10 @@ function toggleModal(modal, show) {
     }
 }
 
-
 async function updateUIForAuthState(user) {
     if (user) {
-
-       // Show History button only when logged in
-    document.getElementById("open-history-btn")?.classList.remove("hidden");
-
-        
+        DOMElements.authBtn.textContent = 'Sign Out';
+        DOMElements.mobileAuthBtn.textContent = 'Sign Out';
         try {
             const token = await user.getIdToken();
             const response = await fetch('/api/credits', {
@@ -198,11 +155,10 @@ async function updateUIForAuthState(user) {
             showMessage("Could not fetch your credit balance.", "error");
         }
     } else {
-         // Hide History button when logged out
-        document.getElementById("open-history-btn")?.classList.add("hidden");
         currentUserCredits = 0;
+        DOMElements.authBtn.textContent = 'Sign In';
+        DOMElements.mobileAuthBtn.textContent = 'Sign In';
         updateCreditDisplay();
-
     }
 }
 
@@ -225,27 +181,21 @@ function resetToGeneratorView() {
 
 // --- Core Application Logic ---
 
-// ------------------- AUTH -------------------
 function handleAuthAction() {
-  if (auth.currentUser) {
-    // Sign out
-    signOut(auth).catch(error => console.error("Sign out error:", error));
-  } else {
-    // Show modal
-    toggleModal(DOMElements.authModal, true);
-  }
+    if (auth.currentUser) {
+        signOut(auth).catch(error => console.error("Sign out error:", error));
+    } else {
+        toggleModal(DOMElements.authModal, true);
+    }
 }
 
 function signInWithGoogle() {
-  signInWithPopup(auth, provider)
-    .then(() => {
-      toggleModal(DOMElements.authModal, false);
-      console.log("✅ Signed in with Google");
-    })
-    .catch(error => {
-      console.error("Authentication Error:", error);
-      showMessage("Failed to sign in. Please try again.", "error");
-    });
+    signInWithPopup(auth, provider)
+        .then(() => toggleModal(DOMElements.authModal, false))
+        .catch(error => {
+            console.error("Authentication Error:", error);
+            showMessage('Failed to sign in. Please try again.', 'error');
+        });
 }
 
 function handleImageGenerationRequest(isRegenerate) {
@@ -378,22 +328,16 @@ function displayImage(imageUrl, prompt) {
 
     imgContainer.append(img, downloadButton);
     DOMElements.imageGrid.appendChild(imgContainer);
-
-    // Save to history after showing the image
-    saveToHistory(imageUrl, prompt);
-    
 }
 
 // --- Utility Functions ---
 
 function showMessage(text, type = 'info') {
-    const messageBox = document.getElementById("message-box");
-    if (!messageBox) return;
     const messageEl = document.createElement('div');
-    messageEl.className = `p-4 rounded-lg ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`;
+    messageEl.className = `p-4 rounded-lg ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'} fade-in-slide-up`;
     messageEl.textContent = text;
-    messageBox.innerHTML = '';
-    messageBox.appendChild(messageEl);
+    DOMElements.messageBox.innerHTML = '';
+    DOMElements.messageBox.appendChild(messageEl);
 }
 
 function addNavigationButtons() {
@@ -497,44 +441,3 @@ function initializeCursor() {
         el.addEventListener('mouseout', () => DOMElements.cursorOutline.classList.remove('cursor-hover'));
     });
 }
-
-// --- HISTORY HELPERS ---
-// Save to localStorage
-function saveToHistory(imageUrl, prompt) {
-  let history = JSON.parse(localStorage.getItem("genart-history")) || [];
-  history.unshift({
-    image: imageUrl,
-    prompt,
-    date: new Date().toISOString()
-  });
-  localStorage.setItem("genart-history", JSON.stringify(history));
-}
-
-// Render history sidebar
-function renderHistory() {
-  const historyContainer = document.getElementById("history-entries");
-  if (!historyContainer) return;
-
-  let history = JSON.parse(localStorage.getItem("genart-history")) || [];
-  historyContainer.innerHTML = "";
-
-  if (history.length === 0) {
-    historyContainer.innerHTML = `<p class="text-gray-500 text-center">No history yet.</p>`;
-    return;
-  }
-
-  history.forEach(item => {
-    const el = document.createElement("div");
-    el.className = "border rounded p-2 flex gap-2 items-center";
-    el.innerHTML = `
-      <img src="${item.image}" alt="Generated" class="w-16 h-16 object-cover rounded">
-      <div class="flex-1">
-        <p class="text-xs text-gray-500">${new Date(item.date).toLocaleString()}</p>
-        <p class="text-sm">${item.prompt}</p>
-      </div>
-    `;
-    historyContainer.appendChild(el);
-  });
-}
-
-
