@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { saveToLibrary } from './library.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBWDZZ-zLYyCrvnnnTeZ1w_IBWQvTrf-hM",
@@ -113,6 +114,7 @@ const saveLibraryBtn = document.getElementById('save-to-library-btn');
 function handleImageUpload(event) {
     const file = event.target.files[0];
 // ... existing code ... -->
+
 
 
 
