@@ -337,13 +337,23 @@ function updateUIForAuthState(user) {
     }
 }
 
-async function fetchUserCredits(userId) {
+
+async function fetchUserCredits() {
   try {
-    const userDoc = await getDoc(doc(db, "users", userId));
+    const user = auth.currentUser;   // get current signed-in user
+    if (!user) {
+      console.warn("No user signed in");
+      return 0; // default credits for guests
+    }
+
+    const userId = user.uid;  // ✅ make sure we use the uid string
+    const userDocRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userDocRef);
+
     if (userDoc.exists()) {
-      return userDoc.data().credits || 0;   // return stored credits
+      return userDoc.data().credits || 0;
     } else {
-      return 0; // default if user doc doesn’t exist
+      return 0;
     }
   } catch (err) {
     console.error("Error fetching credits from Firestore:", err);
@@ -658,6 +668,7 @@ if (saveLibraryBtn) {
         saveToLibrary(generatedImage, userId);
     });
 }
+
 
 
 
