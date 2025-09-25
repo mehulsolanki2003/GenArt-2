@@ -5,7 +5,232 @@
     <title>GenArt Public Library</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GenArt Library — Public AI Images</title>
+  <meta name="description" content="Browse public AI-generated images. Search by prompt, tag, or style. Contribute your own visuals." />
+  <!-- Open Graph -->
+  <meta property="og:title" content="GenArt Library — Public AI Images" />
+  <meta property="og:description" content="Browse public AI-generated images. Search by prompt, tag, or style." />
+  <meta property="og:type" content="website" />
+  <!-- Tailwind CDN (or your own build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDKs (will be initialized in script) -->
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <header class="p-6 bg-white shadow-sm sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="/" class="flex items-center space-x-2">
+        <img src="https://iili.io/FsAoG2I.md.png" alt="GenArt" class="h-8">
+        <span class="font-semibold text-lg">GenArt Library</span>
+      </a>
+      <div>
+        <input id="searchInput" type="search" placeholder="Search prompts, tags, styles..." class="px-3 py-2 rounded-lg border w-72" />
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6">
+    <div class="mb-4 flex items-center justify-between">
+      <div class="flex gap-2">
+        <button id="filter-all" class="px-3 py-1 rounded bg-blue-600 text-white">All</button>
+        <button data-style="cyberpunk" class="filter-btn px-3 py-1 rounded border">cyberpunk</button>
+        <button data-style="photoreal" class="filter-btn px-3 py-1 rounded border">photoreal</button>
+        <button data-style="illustration" class="filter-btn px-3 py-1 rounded border">illustration</button>
+      </div>
+      <div class="text-sm text-gray-500">Showing public images</div>
+    </div>
+
+    <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <!-- images will be appended here -->
+    </div>
+
+    <div id="loadingIndicator" class="mt-8 text-center text-gray-500">Loading...</div>
+    <div id="endOfResults" class="mt-8 text-center text-gray-500 hidden">No more images.</div>
+  </main>
+
+  <footer class="p-6 text-center text-sm text-gray-500">GenArt • Public Library</footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <!-- Library client script -->
+  <script>
+  // --- CONFIG: replace with your firebase config ---
+  const firebaseConfig = {
+    apiKey: "REPLACE_ME",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    appId: "1:xxx:web:xxx"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Pagination state
+  const PAGE_SIZE = 12;
+  let lastVisible = null;
+  let loading = false;
+  let endReached = false;
+  let currentQuery = null;
+
+  const gallery = document.getElementById('galleryGrid');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const endOfResults = document.getElementById('endOfResults');
+  const searchInput = document.getElementById('searchInput');
+
+  // Basic helper to render an image card
+  function renderCard(doc) {
+    const data = doc.data();
+    const card = document.createElement('div');
+    card.className = "bg-white rounded-lg overflow-hidden shadow-sm";
+    const img = document.createElement('img');
+    img.src = data.downloadURL;
+    img.alt = data.prompt || 'Generated image';
+    img.loading = 'lazy';
+    img.className = 'w-full h-56 object-cover';
+    const body = document.createElement('div');
+    body.className = 'p-3';
+    const promptEl = document.createElement('p');
+    promptEl.className = 'text-sm text-gray-700 mb-2';
+    promptEl.textContent = data.prompt || '';
+    const meta = document.createElement('div');
+    meta.className = 'text-xs text-gray-500 flex justify-between items-center';
+    meta.innerHTML = `<span>${data.username || 'Anonymous'}</span><span>${new Date(data.createdAt?.toDate?.() || Date.now()).toLocaleDateString()}</span>`;
+
+    // optional "View" button: opens in a new tab or your preview modal
+    const actions = document.createElement('div');
+    actions.className = 'mt-3 flex items-center justify-between';
+    const viewBtn = document.createElement('a');
+    viewBtn.href = data.downloadURL;
+    viewBtn.target = '_blank';
+    viewBtn.className = 'text-sm text-blue-600 hover:underline';
+    viewBtn.textContent = 'View';
+    actions.appendChild(viewBtn);
+
+    body.appendChild(promptEl);
+    body.appendChild(meta);
+    body.appendChild(actions);
+
+    card.appendChild(img);
+    card.appendChild(body);
+    return card;
+  }
+
+  // Build base query (public images)
+  function baseQuery() {
+    return db.collection('images').where('public', '==', true).orderBy('createdAt', 'desc');
+  }
+
+  // Fetch next page (optionally with search)
+  async function fetchNextPage(reset=false) {
+    if (loading || endReached) return;
+    loading = true;
+    loadingIndicator.style.display = 'block';
+    if (reset) {
+      gallery.innerHTML = '';
+      lastVisible = null;
+      endReached = false;
+      endOfResults.classList.add('hidden');
+    }
+
+    let q = baseQuery();
+    const search = (searchInput.value || '').trim().toLowerCase();
+    const selectedStyle = document.querySelector('.filter-btn.active')?.dataset?.style;
+
+    if (selectedStyle) {
+      q = q.where('style', '==', selectedStyle);
+    }
+
+    // Simple search strategy: query by `promptKeywords` field (array) OR do client-side filter after fetch
+    if (search) {
+      // since Firestore can't do full text by default, load a page and filter client-side for match on prompt
+      // For production use Algolia or Firestore text-search extension.
+      // So we still fetch by createdAt and do client-side filtering.
+    }
+
+    q = q.limit(PAGE_SIZE);
+
+    if (lastVisible) q = q.startAfter(lastVisible);
+
+    const snap = await q.get();
+    if (snap.empty) {
+      endReached = true;
+      endOfResults.classList.remove('hidden');
+      loadingIndicator.style.display = 'none';
+      loading = false;
+      return;
+    }
+
+    let countAdded = 0;
+    snap.forEach(doc => {
+      // client-side search filter if needed
+      const data = doc.data();
+      if (search) {
+        const hay = (data.prompt || '').toLowerCase() + ' ' + (data.tags || []).join(' ');
+        if (!hay.includes(search)) return; // skip
+      }
+      const node = renderCard(doc);
+      gallery.appendChild(node);
+      countAdded++;
+    });
+
+    lastVisible = snap.docs[snap.docs.length - 1];
+    if (snap.size < PAGE_SIZE || countAdded === 0) {
+      // If fewer docs than page or none passed search filter
+      // Attempt next page to find matches (avoid endless loop) - for simplicity, if filtered matches run out, we stop.
+      endReached = true;
+      endOfResults.classList.remove('hidden');
+    }
+
+    loadingIndicator.style.display = 'none';
+    loading = false;
+  }
+
+  // infinite scroll
+  window.addEventListener('scroll', () => {
+    if (loading || endReached) return;
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800) {
+      fetchNextPage();
+    }
+  });
+
+  // search debounce
+  let searchTimer;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      lastVisible = null;
+      endReached = false;
+      fetchNextPage(true);
+    }, 450);
+  });
+
+  // style filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active','bg-blue-600','text-white'));
+      btn.classList.add('active','bg-blue-600','text-white');
+      fetchNextPage(true);
+    });
+  });
+  document.getElementById('filter-all').addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active','bg-blue-600','text-white'));
+    fetchNextPage(true);
+  });
+
+  // initial load
+  fetchNextPage();
+  </script>
+</body>
+</html>
+
 </head>
 <body class="bg-gray-100 min-h-screen">
 
@@ -41,3 +266,4 @@
     </script>
 </body>
 </html>
+
