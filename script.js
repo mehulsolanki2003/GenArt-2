@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBWDZZ-zLYyCrvnnnTeZ1w_IBWQvTrf-hM",
@@ -336,18 +337,18 @@ function updateUIForAuthState(user) {
     }
 }
 
-async function fetchUserCredits(user) {
-    try {
-        const token = await user.getIdToken(true);
-        const response = await fetch('/api/credits', { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!response.ok) throw new Error('Failed to fetch credits');
-        const data = await response.json();
-        currentUserCredits = data.credits;
-        updateCreditsDisplay(currentUserCredits);
-    } catch (error) {
-        console.error("Error fetching credits:", error);
-        updateCreditsDisplay('Error');
+async function fetchUserCredits(userId) {
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (userDoc.exists()) {
+      return userDoc.data().credits || 0;   // return stored credits
+    } else {
+      return 0; // default if user doc doesn’t exist
     }
+  } catch (err) {
+    console.error("Error fetching credits from Firestore:", err);
+    return 0;
+  }
 }
 
 function updateCreditsDisplay(amount) {
@@ -657,6 +658,7 @@ if (saveLibraryBtn) {
         saveToLibrary(generatedImage, userId);
     });
 }
+
 
 
 
