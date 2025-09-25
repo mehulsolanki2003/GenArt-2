@@ -18,6 +18,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+const storage = getStorage(app);
+
+
 const useCaseData = [
     { title: "Marketing", imageUrl: "https://images.unsplash.com/photo-1557862921-37829c790f19?q=80&w=2000&auto=format&fit=crop", description: "Create compelling visuals for campaigns, social media, and ad content in seconds, not hours." },
     { title: "Advertising", imageUrl: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2000&auto=format&fit=crop", description: "Generate countless variations of ad creatives to A/B test and find the perfect message for your audience." },
@@ -499,6 +503,70 @@ function startTimer() {
     }, 50); // Update every 50ms for smoother millisecond display
 }
 
+async function ensureSignedIn() {
+  return new Promise((resolve) => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      unsub();
+      if (user) return resolve(user);
+
+      // show auth modal
+      document.getElementById('auth-modal').style.display = 'flex';
+
+      const googleBtn = document.getElementById('google-signin-btn');
+      googleBtn.onclick = async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+          const result = await signInWithPopup(auth, provider);
+          document.getElementById('auth-modal').style.display = 'none';
+          resolve(result.user);
+        } catch (err) {
+          console.error('Sign in failed', err);
+          resolve(null);
+        }
+      };
+    });
+  });
+}
+
+async function saveToLibrary({ imageBlobOrUrl, promptText, tags = [], style = '' }) {
+  const user = await ensureSignedIn();
+  if (!user) {
+    alert('Sign-in required to save.');
+    return;
+  }
+
+  const imageId = crypto.randomUUID(); // unique ID
+  const storagePath = `images/${imageId}.jpg`;
+
+  let blobToUpload;
+  if (imageBlobOrUrl instanceof Blob) {
+    blobToUpload = imageBlobOrUrl;
+  } else {
+    const res = await fetch(imageBlobOrUrl);
+    blobToUpload = await res.blob();
+  }
+
+  const storageRef = ref(storage, storagePath);
+  await uploadBytes(storageRef, blobToUpload);
+
+  const downloadURL = await getDownloadURL(storageRef);
+
+  await setDoc(doc(db, 'images', imageId), {
+    prompt: promptText || '',
+    uid: user.uid,
+    username: user.displayName || "Anonymous",
+    public: true,
+    tags,
+    style,
+    storagePath,
+    downloadURL,
+    createdAt: serverTimestamp()
+  });
+
+  alert('Saved to Library');
+}
+
+
 // --- Image Handling & Uploads ---
 function handleImageUpload(event) {
     const file = event.target.files[0];
@@ -576,4 +644,19 @@ function downloadPreviewImage() {
         })
         .catch(() => alert('An error occurred while downloading the image.'));
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  // caching IDs, wiring menu buttons, etc.
+});
+
+const saveLibraryBtn = document.getElementById('save-to-library-btn');
+if (saveLibraryBtn) {
+    saveLibraryBtn.addEventListener('click', () => {
+        const generatedImage = document.querySelector('#image-grid img')?.src;
+        const userId = auth.currentUser?.uid || 'Anonymous';
+        saveToLibrary(generatedImage, userId);
+    });
+}
+
+
 
