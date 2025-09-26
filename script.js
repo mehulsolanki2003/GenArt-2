@@ -2,9 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-
+import { saveToLibrary } from './library.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBWDZZ-zLYyCrvnnnTeZ1w_IBWQvTrf-hM",
@@ -21,7 +19,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-const storage = getStorage(app);
 
 
 const useCaseData = [
@@ -339,27 +336,19 @@ function updateUIForAuthState(user) {
 }
 
 
-async function fetchUserCredits() {
-  try {
-    const user = auth.currentUser;   // get current signed-in user
-    if (!user) {
-      console.warn("No user signed in");
-      return 0; // default credits for guests
-    }
-
-    const userId = user.uid;  // ✅ make sure we use the uid string
-    const userDocRef = doc(db, "users", userId);
-    const userDoc = await getDoc(userDocRef);
-
-    if (userDoc.exists()) {
-      return userDoc.data().credits || 0;
-    } else {
-      return 0;
-    }
-  } catch (err) {
-    console.error("Error fetching credits from Firestore:", err);
-    return 0;
-  }
+async function fetchUserCredits(user) { 
+  try { 
+    const token = await user.getIdToken(true);
+    const response = await fetch('/api/credits', { headers: 
+    { 'Authorization': Bearer ${token} } }); 
+    if (!response.ok) throw new Error('Failed to fetch credits'); 
+    const data = await response.json(); 
+    currentUserCredits = data.credits; 
+    updateCreditsDisplay(currentUserCredits); 
+  } catch (error) { 
+    console.error("Error fetching credits:", error); 
+    updateCreditsDisplay('Error');
+  } 
 }
 
 function updateCreditsDisplay(amount) {
@@ -669,6 +658,7 @@ if (saveLibraryBtn) {
         saveToLibrary(generatedImage, userId);
     });
 }
+
 
 
 
