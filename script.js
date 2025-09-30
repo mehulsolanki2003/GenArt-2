@@ -2,7 +2,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { saveToLibrary } from './library.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBWDZZ-zLYyCrvnnnTeZ1w_IBWQvTrf-hM",
@@ -19,16 +18,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-
-
-const useCaseData = [
-    { title: "Marketing", imageUrl: "https://images.unsplash.com/photo-1557862921-37829c790f19?q=80&w=2000&auto=format&fit=crop", description: "Create compelling visuals for campaigns, social media, and ad content in seconds, not hours." },
-    { title: "Advertising", imageUrl: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2000&auto=format&fit=crop", description: "Generate countless variations of ad creatives to A/B test and find the perfect message for your audience." },
-    { title: "Fashion", imageUrl: "https://images.unsplash.com/photo-1581044777550-4cfa6ce6702e?q=80&w=2000&auto=format&fit=crop", description: "Conceptualize and visualize new clothing designs, model shoots, and entire fashion lines instantly." },
-    { title: "Graphic Design", imageUrl: "https://images.unsplash.com/photo-1629904853716-f0bc64219b1b?q=80&w=2000&auto=format&fit=crop", description: "Accelerate your workflow with unique assets, textures, and inspirational concepts for any design project." },
-    { title: "Realistic Photos", imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2000&auto=format&fit=crop", description: "Produce hyper-realistic portraits and scenes, perfect for stock photography or artistic reference." }
-];
-
 // --- Global State ---
 let currentUser;
 let currentUserCredits = 0;
@@ -37,8 +26,6 @@ let currentAspectRatio = '1:1';
 let uploadedImageData = null;
 let currentPreviewInputData = null; 
 let timerInterval;
-let useCaseInterval;
-let currentUseCaseIndex = 0;
 
 // --- DOM Element Caching ---
 const DOMElements = {};
@@ -53,8 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'image-upload-btn', 'image-upload-input', 'image-preview-container', 'image-preview', 'remove-image-btn',
         'preview-input-image-container', 'preview-input-image', 'change-input-image-btn', 'remove-input-image-btn', 'preview-image-upload-input',
         'hero-section', 'hero-headline', 'hero-subline', 'typewriter', 'prompt-bar-container',
-        'use-case-tabs', 'mobile-menu', 'mobile-menu-btn', 'menu-open-icon', 'menu-close-icon',
-        'button-timer'
+        'mobile-menu', 'mobile-menu-btn', 'menu-open-icon', 'menu-close-icon',
+        'button-timer', 'button-content'
     ];
     ids.forEach(id => {
         if (id) {
@@ -69,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeEventListeners();
     initializeAnimations();
-    initializeInteractiveUseCases();
     onAuthStateChanged(auth, user => updateUIForAuthState(user));
     restructureGalleryForMobile();
 });
@@ -85,82 +71,6 @@ function restructureGalleryForMobile() {
         }
     }
 }
-
-function initializeInteractiveUseCases() {
-    const tabsContainer = DOMElements.useCaseTabs;
-    const descriptionsContainer = document.getElementById('use-case-descriptions');
-    const imageWrapper = document.getElementById('use-case-image-wrapper');
-    
-    if (!tabsContainer || !descriptionsContainer || !imageWrapper) return;
-
-    useCaseData.forEach((item, index) => {
-        // Create Tab
-        const tab = document.createElement('button');
-        tab.className = 'use-case-tab';
-        tab.textContent = item.title;
-        tab.dataset.index = index;
-        tabsContainer.appendChild(tab);
-
-        // Create Description
-        const description = document.createElement('p');
-        description.className = 'use-case-description text-base text-gray-600';
-        description.dataset.index = index;
-        description.innerHTML = item.description.split(' ').map(word => `<span class="word">${word}</span>`).join(' ');
-        descriptionsContainer.appendChild(description);
-
-        // Create Image
-        const img = document.createElement('img');
-        img.src = item.imageUrl;
-        img.alt = item.title;
-        img.className = 'use-case-image';
-        img.dataset.index = index;
-        imageWrapper.appendChild(img);
-    });
-
-    tabsContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('use-case-tab')) {
-            const index = parseInt(e.target.dataset.index, 10);
-            updateUseCaseContent(index);
-            // Reset interval on manual click
-            clearInterval(useCaseInterval);
-            useCaseInterval = setInterval(() => {
-                currentUseCaseIndex = (currentUseCaseIndex + 1) % useCaseData.length;
-                updateUseCaseContent(currentUseCaseIndex);
-            }, 5000);
-        }
-    });
-    
-    // Initial state
-    updateUseCaseContent(0);
-
-    // Start auto-play
-    useCaseInterval = setInterval(() => {
-        currentUseCaseIndex = (currentUseCaseIndex + 1) % useCaseData.length;
-        updateUseCaseContent(currentUseCaseIndex);
-    }, 5000);
-}
-
-function updateUseCaseContent(index) {
-    currentUseCaseIndex = index;
-    const allImages = document.querySelectorAll('.use-case-image');
-    const allTabs = document.querySelectorAll('.use-case-tab');
-    const allDescriptions = document.querySelectorAll('.use-case-description');
-
-    allTabs.forEach((tab, i) => tab.classList.toggle('active', i === index));
-    allImages.forEach((img, i) => img.classList.toggle('active', i === index));
-    
-    allDescriptions.forEach((desc, i) => {
-        const isActive = i === index;
-        desc.classList.toggle('active', isActive);
-        if(isActive) {
-            gsap.fromTo(desc.querySelectorAll('.word'), 
-                { opacity: 0, y: 10 },
-                { opacity: 1, y: 0, stagger: 0.03, duration: 0.5, ease: 'power2.out' }
-            );
-        }
-    });
-}
-
 
 function initializeEventListeners() {
     DOMElements.googleSignInBtn?.addEventListener('click', signInWithGoogle);
@@ -207,6 +117,15 @@ function initializeEventListeners() {
         DOMElements.menuOpenIcon.classList.toggle('hidden', !isHidden);
         DOMElements.menuCloseIcon.classList.toggle('hidden', isHidden);
     });
+
+    window.addEventListener('scroll', () => {
+        const header = document.querySelector('header');
+        if (window.scrollY > 10) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
 }
 
 // --- Animations ---
@@ -216,28 +135,16 @@ function initializeAnimations() {
     
     gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
-    const headline = DOMElements.heroHeadline;
-    if (headline) {
-        const headlineText = headline.textContent;
-        headline.innerHTML = headlineText.split("").map(char => `<span class="char">${char === ' ' ? '&nbsp;' : char}</span>`).join("");
-        
-        gsap.to(".char", {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            duration: 0.8,
-            stagger: 0.02,
-            ease: 'power4.out'
-        });
-    }
+    // Simple fade-in for hero headline
+    gsap.fromTo(DOMElements.heroHeadline, 
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.2 }
+    );
 
-    gsap.to(DOMElements.heroSubline, {
-        opacity: 1,
-        y: 0,
-        duration: 1,
-        ease: 'power3.out',
-        delay: 0.5
-    });
+    gsap.fromTo(DOMElements.heroSubline, 
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.4 }
+    );
 
     const words = ["creators.", "agencies.", "enterprises."];
     let masterTl = gsap.timeline({ repeat: -1 });
@@ -248,18 +155,16 @@ function initializeAnimations() {
     });
     
     if (DOMElements.statCards.length > 0) {
-        gsap.to(DOMElements.statCards, {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            duration: 1.2,
-            stagger: 0.2,
-            ease: 'power4.out',
-            scrollTrigger: {
-                trigger: "#stats-section",
-                start: "top 85%",
+        gsap.fromTo(DOMElements.statCards, 
+            { opacity: 0, y: 30, scale: 0.95 },
+            { 
+                opacity: 1, y: 0, scale: 1, duration: 1, stagger: 0.15, ease: 'power3.out',
+                scrollTrigger: {
+                    trigger: "#stats-section",
+                    start: "top 85%",
+                }
             }
-        });
+        );
     }
 
     if (DOMElements.counters.length > 0) {
@@ -282,16 +187,50 @@ function initializeAnimations() {
         });
     }
 
-    gsap.from(".use-case-container", {
-        opacity: 0,
-        y: 50,
-        duration: 1,
-        ease: 'power3.out',
-        scrollTrigger: {
-            trigger: "#interactive-use-cases",
-            start: "top 80%",
+    // Testimonial Animation
+    const testimonialSection = document.getElementById('testimonial-section');
+    if(testimonialSection) {
+        gsap.from(testimonialSection.querySelectorAll(".testimonial-image, .testimonial-card"), {
+            opacity: 0,
+            y: 50,
+            duration: 1,
+            stagger: 0.2,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: testimonialSection,
+                start: "top 80%",
+            }
+        });
+    }
+
+    // Dynamic Use Cases Scroll Animation
+    const useCasesSection = document.getElementById('use-cases-section');
+    const useCaseTexts = gsap.utils.toArray('.use-case-text');
+
+    if (useCasesSection && useCaseTexts.length > 0) {
+        const tl = gsap.timeline();
+        
+        // Animate the first item in
+        tl.to(useCaseTexts[0], { opacity: 1, y: 0, duration: 0.3 });
+
+        // Loop through the rest to create transitions
+        for (let i = 1; i < useCaseTexts.length; i++) {
+            tl.to(useCaseTexts[i-1], { opacity: 0, y: -30, duration: 0.3 }, "+=0.4"); // Animate out previous
+            tl.to(useCaseTexts[i], { opacity: 1, y: 0, duration: 0.3 }); // Animate in current
         }
-    });
+        
+        // Animate the last one out
+        tl.to(useCaseTexts[useCaseTexts.length - 1], { opacity: 0, y: -30, duration: 0.3 }, "+=0.4");
+
+        ScrollTrigger.create({
+            trigger: useCasesSection,
+            start: "top top",
+            end: "bottom bottom",
+            pin: true,
+            scrub: 0.5,
+            animation: tl,
+        });
+    }
 }
 
 
@@ -303,13 +242,11 @@ function updateUIForAuthState(user) {
 
     if (user) {
         nav.innerHTML = `
-            <a href="about.html" class="text-sm font-medium text-gray-700 hover:bg-[#517CBE]/10 rounded-full px-3 py-1 transition-colors">About</a>
             <a href="pricing.html" class="text-sm font-medium text-gray-700 hover:bg-[#517CBE]/10 rounded-full px-3 py-1 transition-colors">Pricing</a>
             <div id="credits-counter" class="text-sm font-medium text-gray-700 px-3 py-1">Credits: ...</div>
             <button id="sign-out-btn-desktop" class="text-sm font-medium text-gray-700 hover:bg-[#517CBE]/10 rounded-full px-3 py-1 transition-colors">Sign Out</button>
         `;
         mobileNav.innerHTML = `
-            <a href="about.html" class="block text-lg font-semibold text-gray-700 p-3 rounded-lg hover:bg-gray-100">About</a>
             <a href="pricing.html" class="block text-lg font-semibold text-gray-700 p-3 rounded-lg hover:bg-gray-100">Pricing</a>
             <div id="credits-counter-mobile" class="text-center text-lg font-semibold text-gray-700 p-3 my-2 border-y">Credits: ...</div>
             <button id="sign-out-btn-mobile" class="w-full text-left text-lg font-semibold text-gray-700 p-3 rounded-lg hover:bg-gray-100">Sign Out</button>
@@ -319,12 +256,10 @@ function updateUIForAuthState(user) {
         fetchUserCredits(user);
     } else {
         nav.innerHTML = `
-            <a href="about.html" class="text-sm font-medium text-gray-700 hover:bg-[#517CBE]/10 rounded-full px-3 py-1 transition-colors">About</a>
             <a href="pricing.html" class="text-sm font-medium text-gray-700 hover:bg-[#517CBE]/10 rounded-full px-3 py-1 transition-colors">Pricing</a>
             <button id="sign-in-btn-desktop" class="text-sm font-medium text-white px-4 py-1.5 rounded-full transition-colors" style="background-color: #517CBE;">Sign In</button>
         `;
          mobileNav.innerHTML = `
-            <a href="about.html" class="block text-lg font-semibold text-gray-700 p-3 rounded-lg hover:bg-gray-100">About</a>
             <a href="pricing.html" class="block text-lg font-semibold text-gray-700 p-3 rounded-lg hover:bg-gray-100">Pricing</a>
             <div class="p-4 mt-4">
                  <button id="sign-in-btn-mobile" class="w-full text-lg font-semibold bg-[#517CBE] text-white px-4 py-3 rounded-xl hover:bg-opacity-90 transition-colors">Sign In</button>
@@ -335,20 +270,18 @@ function updateUIForAuthState(user) {
     }
 }
 
-
-async function fetchUserCredits(user) { 
-  try { 
-    const token = await user.getIdToken(true);
-    const response = await fetch('/api/credits', { headers: 
-    { 'Authorization': Bearer ${token} } }); 
-    if (!response.ok) throw new Error('Failed to fetch credits'); 
-    const data = await response.json(); 
-    currentUserCredits = data.credits; 
-    updateCreditsDisplay(currentUserCredits); 
-  } catch (error) { 
-    console.error("Error fetching credits:", error); 
-    updateCreditsDisplay('Error');
-  } 
+async function fetchUserCredits(user) {
+    try {
+        const token = await user.getIdToken(true);
+        const response = await fetch('/api/credits', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!response.ok) throw new Error('Failed to fetch credits');
+        const data = await response.json();
+        currentUserCredits = data.credits;
+        updateCreditsDisplay(currentUserCredits);
+    } catch (error) {
+        console.error("Error fetching credits:", error);
+        updateCreditsDisplay('Error');
+    }
 }
 
 function updateCreditsDisplay(amount) {
@@ -485,7 +418,7 @@ async function handleRegeneration() {
 function setLoadingState(isLoading) {
     isGenerating = isLoading;
     DOMElements.generateBtn.disabled = isLoading;
-    DOMElements.generateIcon.classList.toggle('hidden', isLoading);
+    DOMElements.buttonContent.classList.toggle('hidden', isLoading);
     DOMElements.buttonTimer.classList.toggle('hidden', !isLoading);
 }
 
@@ -503,70 +436,6 @@ function startTimer() {
         DOMElements.buttonTimer.textContent = (remaining / 1000).toFixed(2);
     }, 50); // Update every 50ms for smoother millisecond display
 }
-
-async function ensureSignedIn() {
-  return new Promise((resolve) => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      unsub();
-      if (user) return resolve(user);
-
-      // show auth modal
-      document.getElementById('auth-modal').style.display = 'flex';
-
-      const googleBtn = document.getElementById('google-signin-btn');
-      googleBtn.onclick = async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-          const result = await signInWithPopup(auth, provider);
-          document.getElementById('auth-modal').style.display = 'none';
-          resolve(result.user);
-        } catch (err) {
-          console.error('Sign in failed', err);
-          resolve(null);
-        }
-      };
-    });
-  });
-}
-
-async function saveToLibrary({ imageBlobOrUrl, promptText, tags = [], style = '' }) {
-  const user = await ensureSignedIn();
-  if (!user) {
-    alert('Sign-in required to save.');
-    return;
-  }
-
-  const imageId = crypto.randomUUID(); // unique ID
-  const storagePath = `images/${imageId}.jpg`;
-
-  let blobToUpload;
-  if (imageBlobOrUrl instanceof Blob) {
-    blobToUpload = imageBlobOrUrl;
-  } else {
-    const res = await fetch(imageBlobOrUrl);
-    blobToUpload = await res.blob();
-  }
-
-  const storageRef = ref(storage, storagePath);
-  await uploadBytes(storageRef, blobToUpload);
-
-  const downloadURL = await getDownloadURL(storageRef);
-
-  await setDoc(doc(db, 'images', imageId), {
-    prompt: promptText || '',
-    uid: user.uid,
-    username: user.displayName || "Anonymous",
-    public: true,
-    tags,
-    style,
-    storagePath,
-    downloadURL,
-    createdAt: serverTimestamp()
-  });
-
-  alert('Saved to Library');
-}
-
 
 // --- Image Handling & Uploads ---
 function handleImageUpload(event) {
@@ -646,23 +515,32 @@ function downloadPreviewImage() {
         .catch(() => alert('An error occurred while downloading the image.'));
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // caching IDs, wiring menu buttons, etc.
-});
 
-const saveLibraryBtn = document.getElementById('save-to-library-btn');
-if (saveLibraryBtn) {
-    saveLibraryBtn.addEventListener('click', () => {
-        const generatedImage = document.querySelector('#image-grid img')?.src;
-        const userId = auth.currentUser?.uid || 'Anonymous';
-        saveToLibrary(generatedImage, userId);
-    });
+
+// DARK MODE TOGGLE
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+// Load saved preference on page load
+if(localStorage.getItem('darkMode') === 'enabled') {
+    document.documentElement.classList.add('dark');
+    darkModeToggle.textContent = '☀️';
+} else {
+    darkModeToggle.textContent = '🌙';
 }
 
 
+// Toggle dark mode on button click
+darkModeToggle.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
 
-
-
+    if(document.documentElement.classList.contains('dark')) {
+        localStorage.setItem('darkMode', 'enabled');
+        darkModeToggle.textContent = '☀️'; // sun icon
+    } else {
+        localStorage.setItem('darkMode', 'disabled');
+        darkModeToggle.textContent = '🌙'; // moon icon
+    }
+});
 
 
 
